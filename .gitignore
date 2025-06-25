@@ -1,0 +1,12 @@
+RBAC_API/.vs/*
+RBAC_API/bin/*
+RBAC_API/obj/*
+
+ManagementAPI/venv/*
+__pycache__/
+ManagementAPI/.vscode/*
+
+management-client/node_modules/*
+management-client/dist/*
+management-client/.vscode/*
+
