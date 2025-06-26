@@ -15,26 +15,28 @@ namespace RBAC_API.Database
         {
             base.OnModelCreating(builder);
 
+            builder.HasDefaultSchema("rbac");
+
             builder.Entity<User>(entity =>
             {
-                entity.ToTable("Users");
+                entity.ToTable("Users", "rbac");
                 entity.HasIndex(u => u.Email).IsUnique();
                 entity.Property(u => u.FirstName).HasMaxLength(100);
                 entity.Property(u => u.LastName).HasMaxLength(100);
-                entity.Property(u => u.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+                entity.Property(u => u.CreatedAt).HasDefaultValueSql("NOW()");
             });
 
             builder.Entity<Role>(entity =>
             {
-                entity.ToTable("Roles");
+                entity.ToTable("Roles", "rbac");
                 entity.HasIndex(r => r.Name).IsUnique();
                 entity.Property(r => r.Description).HasMaxLength(500);
-                entity.Property(r => r.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+                entity.Property(r => r.CreatedAt).HasDefaultValueSql("NOW()");
             });
 
             builder.Entity<UserRole>(entity =>
             {
-                entity.ToTable("UserRoles");
+                entity.ToTable("UserRoles", "rbac");
                 entity.HasKey(ur => new { ur.UserId, ur.RoleId });
 
                 entity.HasOne(ur => ur.User)
@@ -47,26 +49,26 @@ namespace RBAC_API.Database
                     .HasForeignKey(ur => ur.RoleId)
                     .OnDelete(DeleteBehavior.Cascade);
 
-                entity.Property(ur => ur.AssignedAt).HasDefaultValueSql("GETUTCDATE()");
+                entity.Property(ur => ur.AssignedAt).HasDefaultValueSql("NOW()");
                 entity.Property(ur => ur.AssignedBy).HasMaxLength(450);
             });
 
             builder.Entity<Permission>(entity =>
             {
-                entity.ToTable("Permissions");
+                entity.ToTable("Permissions", "rbac");
                 entity.HasKey(p => p.Id);
                 entity.Property(p => p.Name).IsRequired().HasMaxLength(100);
                 entity.Property(p => p.Description).HasMaxLength(500);
                 entity.Property(p => p.Resource).IsRequired().HasMaxLength(50);
                 entity.Property(p => p.Action).IsRequired().HasMaxLength(50);
-                entity.Property(p => p.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+                entity.Property(p => p.CreatedAt).HasDefaultValueSql("NOW()");
                 entity.HasIndex(p => new { p.Resource, p.Action }).IsUnique();
                 entity.HasIndex(p => p.Name);
             });
 
             builder.Entity<RolePermission>(entity =>
             {
-                entity.ToTable("RolePermissions");
+                entity.ToTable("RolePermissions", "rbac");
                 entity.HasKey(rp => rp.Id);
 
                 entity.HasOne(rp => rp.Role)
@@ -80,17 +82,17 @@ namespace RBAC_API.Database
                     .OnDelete(DeleteBehavior.Cascade);
 
                 entity.Property(rp => rp.RoleId).IsRequired().HasMaxLength(450);
-                entity.Property(rp => rp.GrantedAt).HasDefaultValueSql("GETUTCDATE()");
+                entity.Property(rp => rp.GrantedAt).HasDefaultValueSql("NOW()");
                 entity.Property(rp => rp.GrantedBy).HasMaxLength(450);
 
                 // Ensure unique combination of Role + Permission
                 entity.HasIndex(rp => new { rp.RoleId, rp.PermissionId }).IsUnique();
             });
 
-            builder.Entity<IdentityUserClaim<string>>().ToTable("UserClaims");
-            builder.Entity<IdentityUserLogin<string>>().ToTable("UserLogins");
-            builder.Entity<IdentityUserToken<string>>().ToTable("UserTokens");
-            builder.Entity<IdentityRoleClaim<string>>().ToTable("RoleClaims");
+            builder.Entity<IdentityUserClaim<string>>().ToTable("UserClaims", "rbac");
+            builder.Entity<IdentityUserLogin<string>>().ToTable("UserLogins", "rbac");
+            builder.Entity<IdentityUserToken<string>>().ToTable("UserTokens", "rbac");
+            builder.Entity<IdentityRoleClaim<string>>().ToTable("RoleClaims", "rbac");
         }
 
         public override int SaveChanges()
