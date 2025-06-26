@@ -5,7 +5,7 @@ using RBAC_API.Models;
 
 namespace RBAC_API.Database
 {
-    public class AppContext : IdentityDbContext<User, Role, string, IdentityUserClaim<string>,
+    public class RbacContext : IdentityDbContext<User, Role, string, IdentityUserClaim<string>,
         UserRole, IdentityUserLogin<string>, IdentityRoleClaim<string>, IdentityUserToken<string>>
     {
         public DbSet<Permission> Permissions { get; set; }

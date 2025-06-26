@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using RBAC_API.Database;
+
 namespace RBAC_API
 {
     public class Program
@@ -9,6 +12,10 @@ namespace RBAC_API
             // Add services to the container.
 
             builder.Services.AddControllers();
+
+            builder.Services.AddDbContext<RbacContext>(ops => 
+                ops.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+            );
 
             var app = builder.Build();
 
