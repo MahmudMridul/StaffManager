@@ -8,6 +8,10 @@ namespace RBAC_API.Database
     public class RbacContext : IdentityDbContext<User, Role, string, IdentityUserClaim<string>,
         UserRole, IdentityUserLogin<string>, IdentityRoleClaim<string>, IdentityUserToken<string>>
     {
+        public RbacContext(DbContextOptions<RbacContext> options) : base(options)
+        {
+        }
+
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
 
