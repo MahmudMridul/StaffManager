@@ -16,7 +16,7 @@ namespace RBAC_API.Database
             {
                 new Role
                 {
-                    Id = "1",
+                    Id = Guid.NewGuid().ToString(),
                     Name = "Super Admin",
                     NormalizedName = "SUPER_ADMIN",
                     Description = "Full system access with all permissions",
@@ -26,7 +26,7 @@ namespace RBAC_API.Database
                 },
                 new Role
                 {
-                    Id = "2",
+                    Id = Guid.NewGuid().ToString(),
                     Name = "Admin",
                     NormalizedName = "ADMIN",
                     Description = "Administrative access with most permissions",
@@ -36,7 +36,7 @@ namespace RBAC_API.Database
                 },
                 new Role
                 {
-                    Id = "3",
+                    Id = Guid.NewGuid().ToString(),
                     Name = "Manager",
                     NormalizedName = "MANAGER",
                     Description = "Management level access",
@@ -46,7 +46,7 @@ namespace RBAC_API.Database
                 },
                 new Role
                 {
-                    Id = "4",
+                    Id = Guid.NewGuid().ToString(),
                     Name = "Senior Staff",
                     NormalizedName = "SENIOR_STAFF",
                     Description = "Senior level staff access",
@@ -56,7 +56,7 @@ namespace RBAC_API.Database
                 },
                 new Role
                 {
-                    Id = "5",
+                    Id = Guid.NewGuid().ToString(),
                     Name = "Junior Staff",
                     NormalizedName = "JUNIOR_STAFF",
                     Description = "Junior level staff access",
