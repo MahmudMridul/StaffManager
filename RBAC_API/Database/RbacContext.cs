@@ -97,6 +97,8 @@ namespace RBAC_API.Database
             builder.Entity<IdentityUserLogin<string>>().ToTable("UserLogins", "rbac");
             builder.Entity<IdentityUserToken<string>>().ToTable("UserTokens", "rbac");
             builder.Entity<IdentityRoleClaim<string>>().ToTable("RoleClaims", "rbac");
+
+            DataSeeder.SeedData(builder);
         }
 
         public override int SaveChanges()
@@ -127,6 +129,64 @@ namespace RBAC_API.Database
                     role.UpdatedAt = DateTime.UtcNow;
                 }
             }
+        }
+
+        private void SeedRoles(ModelBuilder builder)
+        {
+            var roles = new[]
+            {
+                new Role
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Name = "Super Admin",
+                    NormalizedName = "SUPER_ADMIN",
+                    Description = "Full system access with all permissions",
+                    CreatedAt = DateTime.UtcNow,
+                    IsActive = true,
+                    ConcurrencyStamp = Guid.NewGuid().ToString()
+                },
+                new Role
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Name = "Admin",
+                    NormalizedName = "ADMIN",
+                    Description = "Administrative access with most permissions",
+                    CreatedAt = DateTime.UtcNow,
+                    IsActive = true,
+                    ConcurrencyStamp = Guid.NewGuid().ToString()
+                },
+                new Role
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Name = "Manager",
+                    NormalizedName = "MANAGER",
+                    Description = "Management level access",
+                    CreatedAt = DateTime.UtcNow,
+                    IsActive = true,
+                    ConcurrencyStamp = Guid.NewGuid().ToString()
+                },
+                new Role
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Name = "Senior Staff",
+                    NormalizedName = "SENIOR_STAFF",
+                    Description = "Senior level staff access",
+                    CreatedAt = DateTime.UtcNow,
+                    IsActive = true,
+                    ConcurrencyStamp = Guid.NewGuid().ToString()
+                },
+                new Role
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Name = "Junior Staff",
+                    NormalizedName = "JUNIOR_STAFF",
+                    Description = "Junior level staff access",
+                    CreatedAt = DateTime.UtcNow,
+                    IsActive = true,
+                    ConcurrencyStamp = Guid.NewGuid().ToString()
+                }
+            };
+            builder.Entity<Role>().HasData(roles);
         }
     }
 }
