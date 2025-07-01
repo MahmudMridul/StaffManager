@@ -11,7 +11,7 @@ namespace RBAC_API.Models
         public List<string>? Errors { get; set; }
         public DateTime TimeStamp { get; set; } = DateTime.UtcNow;
 
-        public static RbacResponse Create(bool success, HttpStatusCode code, string msg, object? data = null, List<string>? errors = null)
+        public static RbacResponse Create(HttpStatusCode code, string msg, bool success = false, object? data = null, List<string>? errors = null)
         {
             return new RbacResponse
             {
@@ -44,6 +44,37 @@ namespace RBAC_API.Models
                 Message = string.IsNullOrEmpty(message) ? "Resource created successfully" : message,
                 Data = data,
                 Errors = null
+            };
+        }
+
+        public static RbacResponse BadRequest(string msg, List<string>? errors = null)
+        {
+            return new RbacResponse
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Message = msg,
+                Errors = errors,
+            };
+        }
+
+        public static RbacResponse ValidationFailed(List<string> errors)
+        {
+            return new RbacResponse
+            {
+                Success = false,
+                StatusCode = HttpStatusCode.BadRequest,
+                Message = "Validation failed",
+                Errors = errors
+            };
+        }
+
+        public static RbacResponse Conflict(string msg)
+        {
+            return new RbacResponse
+            {
+                Success = false,
+                StatusCode = HttpStatusCode.Conflict,
+                Message = msg,
             };
         }
 
