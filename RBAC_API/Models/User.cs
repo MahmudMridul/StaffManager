@@ -11,9 +11,9 @@ namespace RBAC_API.Models
         [MaxLength(100)]
         public string? LastName { get; set; }
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime Created { get; set; } = DateTime.UtcNow;
 
-        public DateTime UpdatedAt { get; set; }
+        public DateTime Updated { get; set; }
 
         public bool IsActive { get; set; } = true;
 
