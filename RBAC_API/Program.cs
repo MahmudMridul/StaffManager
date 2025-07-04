@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using RBAC_API.Database;
 using RBAC_API.ExceptionHandler;
 using RBAC_API.Models;
+using RBAC_API.Servies;
 using System.Text;
 
 namespace RBAC_API
@@ -18,6 +19,10 @@ namespace RBAC_API
             // Add services to the container.
 
             builder.Services.AddControllers();
+
+            #region Custom Services
+            builder.Services.AddScoped<SignupValidationService>();
+            #endregion
 
             #region Database connection configuration
             builder.Services.AddDbContext<RbacContext>(ops => 

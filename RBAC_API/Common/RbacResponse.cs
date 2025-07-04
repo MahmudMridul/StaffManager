@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace RBAC_API.Models
+namespace RBAC_API.Common
 {
     public class RbacResponse
     {

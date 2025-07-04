@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Diagnostics;
-using RBAC_API.Models;
+using RBAC_API.Common;
 using System.Net;
 using System.Text.Json;
 

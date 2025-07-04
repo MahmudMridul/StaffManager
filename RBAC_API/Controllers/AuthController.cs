@@ -2,9 +2,11 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using RBAC_API.Common;
 using RBAC_API.Database;
 using RBAC_API.Models;
 using RBAC_API.Models.DTOs;
+using RBAC_API.Servies;
 using System.Net;
 using System.Text;
 
@@ -17,35 +19,31 @@ namespace RBAC_API.Controllers
         private readonly RbacContext _context;
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
+        private readonly SignupValidationService _signUpValidationService;
         private readonly IConfiguration _config;
 
-        public AuthController(RbacContext context, UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration config)
+        public AuthController(RbacContext context, UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration config, SignupValidationService signupValidationService)
         {
             _context = context;
             _userManager = userManager;
             _signInManager = signInManager;
             _config = config;
+            _signUpValidationService = signupValidationService;
         }
 
         [HttpPost("signup")]
         public async Task<ActionResult<RbacResponse>> Signup([FromBody] SignupRequest signupRequest)
         {
-            RbacResponse res;
-
             if (!ModelState.IsValid)
             {
                 List<string> errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
-                res = RbacResponse.BadRequest("Validation falied", errors);
-                return BadRequest(res);
+                return BadRequest(RbacResponse.BadRequest("Validation falied", errors));
             }
 
-            var existingUser = await _userManager.Users.FirstOrDefaultAsync(u => u.UserName == signupRequest.UserName || u.Email == signupRequest.Email);
-
-            if (existingUser != null)
+            var businessValidation = await _signUpValidationService.ValidateSignupAsync(signupRequest);
+            if (!businessValidation.IsValid)
             {
-                string conflictField = existingUser.UserName == signupRequest.UserName ? "Username" : "Email";
-                res = RbacResponse.Conflict($"{conflictField} already exists");
-                return Conflict(res);
+                return BadRequest(RbacResponse.BadRequest("Validation failed", businessValidation.Errors));
             }
 
             User user = new User
@@ -71,8 +69,7 @@ namespace RBAC_API.Controllers
                 {
                     sb.AppendLine(err);
                 }
-                res = RbacResponse.BadRequest(sb.ToString(), errorMsg);
-                return BadRequest(res);
+                return BadRequest(RbacResponse.BadRequest(sb.ToString(), errorMsg));
             }
 
             IList<User> adminExists = await _userManager.GetUsersInRoleAsync("Super Admin");
@@ -85,8 +82,7 @@ namespace RBAC_API.Controllers
             {
                 await _userManager.AddToRoleAsync(user, "Super Admin");
             }   
-            res = RbacResponse.Created(signupRequest, "Signup successfull");
-            return Ok(res);
+            return Ok(RbacResponse.Created(signupRequest, "Signup successfull"));
         }
 
         // GET: api/<AuthController>
