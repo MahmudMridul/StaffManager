@@ -1,6 +1,278 @@
-@RBAC_API_HostAddress = http://localhost:5196
+### Signup API Tests
+@baseUrl = http://localhost:5196
+@contentType = application/json
 
-GET {{RBAC_API_HostAddress}}/weatherforecast/
-Accept: application/json
+### Test 1: Successful Signup (First User - Should become Super Admin)
+POST {{baseUrl}}/auth/signup
+Content-Type: {{contentType}}
+
+{
+  "userName": "admin001",
+  "email": "admin@example.com",
+  "password": "AdminPass123!",
+  "firstName": "Admin",
+  "lastName": "User"
+}
+
+###
+
+### Test 2: Successful Signup (Second User - Should become Junior Staff)
+POST {{baseUrl}}/auth/signup
+Content-Type: {{contentType}}
+
+{
+  "userName": "user001",
+  "email": "user@example.com",
+  "password": "UserPass123!",
+  "firstName": "Regular",
+  "lastName": "User"
+}
+
+###
+
+### Test 3: Validation Error - Missing Required Fields
+POST {{baseUrl}}/auth/signup
+Content-Type: {{contentType}}
+
+{
+  "userName": "",
+  "email": "",
+  "password": "",
+  "firstName": "",
+  "lastName": ""
+}
+
+###
+
+### Test 4: Validation Error - Invalid Email Format
+POST {{baseUrl}}/auth/signup
+Content-Type: {{contentType}}
+
+{
+  "userName": "testuser",
+  "email": "invalid-email",
+  "password": "ValidPass123!",
+  "firstName": "Test",
+  "lastName": "User"
+}
+
+###
+
+### Test 5: Validation Error - Weak Password
+POST {{baseUrl}}/auth/signup
+Content-Type: {{contentType}}
+
+{
+  "userName": "testuser2",
+  "email": "test2@example.com",
+  "password": "123",
+  "firstName": "Test",
+  "lastName": "User"
+}
+
+###
+
+### Test 6: Conflict Error - Duplicate Username
+POST {{baseUrl}}/auth/signup
+Content-Type: {{contentType}}
+
+{
+  "userName": "admin001",
+  "email": "newemail@example.com",
+  "password": "NewPass123!",
+  "firstName": "New",
+  "lastName": "User"
+}
+
+###
+
+### Test 7: Conflict Error - Duplicate Email
+POST {{baseUrl}}/auth/signup
+Content-Type: {{contentType}}
+
+{
+  "userName": "newusername",
+  "email": "admin@example.com",
+  "password": "NewPass123!",
+  "firstName": "New",
+  "lastName": "User"
+}
+
+###
+
+### Test 8: Invalid JSON Format
+POST {{baseUrl}}/auth/signup
+Content-Type: {{contentType}}
+
+{
+  "userName": "testuser3",
+  "email": "test3@example.com",
+  "password": "ValidPass123!",
+  "firstName": "Test",
+  "lastName": "User",
+}
+
+###
+
+### Test 9: Missing Content-Type Header
+POST {{baseUrl}}/auth/signup
+
+{
+  "userName": "testuser4",
+  "email": "test4@example.com",
+  "password": "ValidPass123!",
+  "firstName": "Test",
+  "lastName": "User"
+}
+
+###
+
+### Test 10: Empty Request Body
+POST {{baseUrl}}/auth/signup
+Content-Type: {{contentType}}
+
+{}
+
+###
+
+### Test 11: Null Values
+POST {{baseUrl}}/auth/signup
+Content-Type: {{contentType}}
+
+{
+  "userName": null,
+  "email": null,
+  "password": null,
+  "firstName": null,
+  "lastName": null
+}
+
+###
+
+### Test 12: Very Long Username (Boundary Testing)
+POST {{baseUrl}}/auth/signup
+Content-Type: {{contentType}}
+
+{
+  "userName": "verylongusernamethatexceedsthemaximumlengthallowedforausernameinthesystem",
+  "email": "longusername@example.com",
+  "password": "ValidPass123!",
+  "firstName": "Long",
+  "lastName": "Username"
+}
+
+###
+
+### Test 13: Special Characters in Username
+POST {{baseUrl}}/auth/signup
+Content-Type: {{contentType}}
+
+{
+  "userName": "test@user#123",
+  "email": "special@example.com",
+  "password": "ValidPass123!",
+  "firstName": "Special",
+  "lastName": "User"
+}
+
+###
+
+### Test 14: Unicode Characters in Name
+POST {{baseUrl}}/auth/signup
+Content-Type: {{contentType}}
+
+{
+  "userName": "unicodeuser",
+  "email": "unicode@example.com",
+  "password": "ValidPass123!",
+  "firstName": "José",
+  "lastName": "Müller"
+}
+
+###
+
+### Test 15: Case Sensitivity Test for Username
+POST {{baseUrl}}/auth/signup
+Content-Type: {{contentType}}
+
+{
+  "userName": "ADMIN001",
+  "email": "admin2@example.com",
+  "password": "ValidPass123!",
+  "firstName": "Admin",
+  "lastName": "Two"
+}
+
+###
+
+### Test 16: Case Sensitivity Test for Email
+POST {{baseUrl}}/auth/signup
+Content-Type: {{contentType}}
+
+{
+  "userName": "admin002",
+  "email": "ADMIN@EXAMPLE.COM",
+  "password": "ValidPass123!",
+  "firstName": "Admin",
+  "lastName": "Three"
+}
+
+###
+
+### Test 17: Whitespace in Username
+POST {{baseUrl}}/auth/signup
+Content-Type: {{contentType}}
+
+{
+  "userName": " spaceuser ",
+  "email": "space@example.com",
+  "password": "ValidPass123!",
+  "firstName": "Space",
+  "lastName": "User"
+}
+
+###
+
+### Test 18: SQL Injection Attempt
+POST {{baseUrl}}/auth/signup
+Content-Type: {{contentType}}
+
+{
+  "userName": "'; DROP TABLE Users; --",
+  "email": "hacker@example.com",
+  "password": "ValidPass123!",
+  "firstName": "Hacker",
+  "lastName": "User"
+}
+
+###
+
+### Test 21: Extra Fields in Request (Should be ignored)
+POST {{baseUrl}}/auth/signup
+Content-Type: {{contentType}}
+
+{
+  "userName": "extrauser",
+  "email": "extra@example.com",
+  "password": "ValidPass123!",
+  "firstName": "Extra",
+  "lastName": "User",
+  "extraField": "This should be ignored",
+  "anotherField": 12345
+}
+
+###
+
+### Test 24: Large Request Body
+POST {{baseUrl}}/auth/signup
+Content-Type: {{contentType}}
+
+{
+  "userName": "largeuser",
+  "email": "large@example.com",
+  "password": "ValidPass123!",
+  "firstName": "ThisIsAVeryLongFirstNameThatMightExceedNormalLimitsForFirstNameFieldsInTheDatabase",
+  "lastName": "ThisIsAVeryLongLastNameThatMightExceedNormalLimitsForLastNameFieldsInTheDatabase"
+}
 
 ###
