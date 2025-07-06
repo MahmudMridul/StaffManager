@@ -1,5 +1,5 @@
 ### Signup API Tests
-@baseUrl = http://localhost:5196
+@baseUrl = http://localhost:5196/api
 @contentType = application/json
 
 ### Test 1: Successful Signup (First User - Should become Super Admin)
@@ -7,9 +7,10 @@ POST {{baseUrl}}/auth/signup
 Content-Type: {{contentType}}
 
 {
-  "userName": "admin001",
-  "email": "admin@example.com",
-  "password": "AdminPass123!",
+  "userName": "adminuser",
+  "email": "admin.user@mail.com",
+  "password": "Onejuly1!",
+  "confirmPassword": "Onejuly1!",
   "firstName": "Admin",
   "lastName": "User"
 }
