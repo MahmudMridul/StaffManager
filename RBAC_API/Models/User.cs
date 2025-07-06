@@ -17,6 +17,9 @@ namespace RBAC_API.Models
 
         public bool IsActive { get; set; } = true;
 
+        public DateTime LastLoginAt { get; set; }
+        public string? LastLoginIp { get; set; }
+
         // Navigation property for user roles
         public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
     }
