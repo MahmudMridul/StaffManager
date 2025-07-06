@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using RBAC_API.Database;
 using RBAC_API.ExceptionHandler;
 using RBAC_API.Models;
+using RBAC_API.Services;
 using RBAC_API.Servies;
 using System.Text;
 
@@ -22,6 +23,7 @@ namespace RBAC_API
 
             #region Custom Services
             builder.Services.AddScoped<SignupValidationService>();
+            builder.Services.AddScoped<JwtService>();
             #endregion
 
             #region Database connection configuration

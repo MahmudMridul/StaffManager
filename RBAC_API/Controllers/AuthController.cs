@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -6,8 +6,9 @@ using RBAC_API.Common;
 using RBAC_API.Database;
 using RBAC_API.Models;
 using RBAC_API.Models.DTOs;
+using RBAC_API.Services;
 using RBAC_API.Servies;
-using System.Net;
+using System.Security.Claims;
 using System.Text;
 
 namespace RBAC_API.Controllers
@@ -21,14 +22,16 @@ namespace RBAC_API.Controllers
         private readonly SignInManager<User> _signInManager;
         private readonly SignupValidationService _signUpValidationService;
         private readonly IConfiguration _config;
+        private readonly JwtService _jwtService;
 
-        public AuthController(RbacContext context, UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration config, SignupValidationService signupValidationService)
+        public AuthController(RbacContext context, UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration config, SignupValidationService signupValidationService, JwtService jwtService)
         {
             _context = context;
             _userManager = userManager;
             _signInManager = signInManager;
             _config = config;
             _signUpValidationService = signupValidationService;
+            _jwtService = jwtService;
         }
 
         [HttpPost("signup")]
@@ -83,6 +86,152 @@ namespace RBAC_API.Controllers
                 await _userManager.AddToRoleAsync(user, "SUPER_ADMIN");
             }   
             return Ok(RbacResponse.Created(signupRequest, "Signup successfull"));
+        }
+
+        [HttpPost("signin")]
+        public async Task<ActionResult<RbacResponse>> Signin([FromBody] SigninRequest signinRequest)
+        {
+            if (!ModelState.IsValid)
+            {
+                List<string> errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                return BadRequest(RbacResponse.BadRequest("Validation failed", errors));
+            }
+
+            User? user = await _userManager.FindByEmailAsync(signinRequest.EmailOrUsername) ??
+                        await _userManager.FindByNameAsync(signinRequest.EmailOrUsername);
+
+            if (user == null)
+            {
+                return BadRequest(RbacResponse.BadRequest("Invalid credentials"));
+            }
+
+            if (await _userManager.IsLockedOutAsync(user))
+            {
+                return BadRequest(RbacResponse.BadRequest("Account is locked out. Please try again later."));
+            }
+
+            if (!user.IsActive)
+            {
+                return BadRequest(RbacResponse.BadRequest("Account is deactivated. Please contact administrator."));
+            }
+
+            var result = await _signInManager.CheckPasswordSignInAsync(user, signinRequest.Password, true);
+
+            if (!result.Succeeded)
+            {
+                if (result.IsLockedOut)
+                {
+                    return BadRequest(RbacResponse.BadRequest("Account locked out due to multiple failed attempts."));
+                }
+                return BadRequest(RbacResponse.BadRequest("Invalid credentials"));
+            }
+
+            var authResponse = await GenerateAuthResponseAsync(user);
+
+            return Ok(RbacResponse.Ok(authResponse, "Sign in successful"));
+        }
+
+        [HttpPost("signout")]
+        [Authorize]
+        public async Task<ActionResult<RbacResponse>> Signout()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return BadRequest(RbacResponse.BadRequest("User not found"));
+            }
+
+            // Revoke all refresh tokens for this user
+            var refreshTokens = await _context.RefreshTokens
+                .Where(rt => rt.UserId == userId && rt.RevokedAt == null)
+                .ToListAsync();
+
+            foreach (var token in refreshTokens)
+            {
+                token.RevokedAt = DateTime.UtcNow;
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(RbacResponse.Ok(null, "Signed out successfully"));
+        }
+
+        [HttpPost("signout-all")]
+        [Authorize]
+        public async Task<ActionResult<RbacResponse>> SignoutAll()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return BadRequest(RbacResponse.BadRequest("User not found"));
+            }
+
+            // Revoke all refresh tokens for this user across all devices
+            var refreshTokens = await _context.RefreshTokens
+                .Where(rt => rt.UserId == userId && rt.RevokedAt == null)
+                .ToListAsync();
+
+            foreach (var token in refreshTokens)
+            {
+                token.RevokedAt = DateTime.UtcNow;
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(RbacResponse.Ok(null, "Signed out from all devices successfully"));
+        }
+
+        private async Task<AuthResponse> GenerateAuthResponseAsync(User user)
+        {
+            var roles = await _userManager.GetRolesAsync(user);
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim(ClaimTypes.Name, user.UserName ?? ""),
+                new Claim(ClaimTypes.Email, user.Email ?? ""),
+                new Claim("FirstName", user.FirstName ?? ""),
+                new Claim("LastName", user.LastName ?? "")
+            };
+
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
+            var accessToken = _jwtService.GenerateAccessToken(claims);
+            var refreshToken = _jwtService.GenerateRefreshToken();
+            var refreshTokenExpiration = _jwtService.GetRefreshTokenExpiration();
+
+            // Store refresh token in database
+            var refreshTokenEntity = new RefreshToken
+            {
+                Token = refreshToken,
+                UserId = user.Id,
+                ExpiresAt = refreshTokenExpiration,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.RefreshTokens.Add(refreshTokenEntity);
+            await _context.SaveChangesAsync();
+
+            return new AuthResponse
+            {
+                AccessToken = accessToken,
+                RefreshToken = refreshToken,
+                AccessTokenExpiration = DateTime.UtcNow.AddMinutes(int.Parse(_config["Jwt:AccessTokenExpirationMinutes"] ?? "15")),
+                RefreshTokenExpiration = refreshTokenExpiration,
+                User = new UserInfo
+                {
+                    Id = user.Id,
+                    UserName = user.UserName ?? "",
+                    Email = user.Email ?? "",
+                    FirstName = user.FirstName ?? "",
+                    LastName = user.LastName ?? "",
+                    Roles = roles.ToList()
+                }
+            };
         }
 
         // GET: api/<AuthController>

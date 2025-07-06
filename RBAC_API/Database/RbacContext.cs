@@ -14,6 +14,7 @@ namespace RBAC_API.Database
 
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -91,6 +92,24 @@ namespace RBAC_API.Database
 
                 // Ensure unique combination of Role + Permission
                 entity.HasIndex(rp => new { rp.RoleId, rp.PermissionId }).IsUnique();
+            });
+
+            builder.Entity<RefreshToken>(entity =>
+            {
+                entity.ToTable("RefreshTokens", "rbac");
+                entity.HasKey(rt => rt.Id);
+
+                entity.Property(rt => rt.Token).IsRequired().HasMaxLength(500);
+                entity.Property(rt => rt.UserId).IsRequired().HasMaxLength(450);
+                entity.Property(rt => rt.CreatedAt).HasDefaultValueSql("NOW()");
+
+                entity.HasOne(rt => rt.User)
+                    .WithMany()
+                    .HasForeignKey(rt => rt.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(rt => rt.Token).IsUnique();
+                entity.HasIndex(rt => rt.UserId);
             });
 
             builder.Entity<IdentityUserClaim<string>>().ToTable("UserClaims", "rbac");
