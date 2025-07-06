@@ -277,3 +277,398 @@ Content-Type: {{contentType}}
 }
 
 ###
+
+### ================================
+### SIGNIN API TESTS
+### ================================
+
+### Test 1: Successful Signin - Valid Email and Password
+POST {{baseUrl}}/auth/signin
+Content-Type: {{contentType}}
+
+{
+  "emailOrUsername": "admin.user@mail.com",
+  "password": "Onejuly1!",
+  "rememberMe": false
+}
+
+###
+
+### Test 2: Successful Signin - Valid Username and Password
+POST {{baseUrl}}/auth/signin
+Content-Type: {{contentType}}
+
+{
+  "emailOrUsername": "adminuser",
+  "password": "Onejuly1!",
+  "rememberMe": true
+}
+
+###
+
+### Test 3: Successful Signin - Regular User
+POST {{baseUrl}}/auth/signin
+Content-Type: {{contentType}}
+
+{
+  "emailOrUsername": "user001",
+  "password": "UserPass123!",
+  "rememberMe": false
+}
+
+###
+
+### Test 4: Invalid Credentials - Non-existent User
+POST {{baseUrl}}/auth/signin
+Content-Type: {{contentType}}
+
+{
+  "emailOrUsername": "nonexistent@example.com",
+  "password": "SomePassword123!",
+  "rememberMe": false
+}
+
+###
+
+### Test 5: Invalid Credentials - Wrong Password
+POST {{baseUrl}}/auth/signin
+Content-Type: {{contentType}}
+
+{
+  "emailOrUsername": "admin.user@mail.com",
+  "password": "WrongPassword123!",
+  "rememberMe": false
+}
+
+###
+
+### Test 6: Validation Error - Missing Email/Username
+POST {{baseUrl}}/auth/signin
+Content-Type: {{contentType}}
+
+{
+  "password": "ValidPass123!",
+  "rememberMe": false
+}
+
+###
+
+### Test 7: Validation Error - Missing Password
+POST {{baseUrl}}/auth/signin
+Content-Type: {{contentType}}
+
+{
+  "emailOrUsername": "admin.user@mail.com",
+  "rememberMe": false
+}
+
+###
+
+### Test 8: Validation Error - Empty Email/Username
+POST {{baseUrl}}/auth/signin
+Content-Type: {{contentType}}
+
+{
+  "emailOrUsername": "",
+  "password": "ValidPass123!",
+  "rememberMe": false
+}
+
+###
+
+### Test 9: Validation Error - Empty Password
+POST {{baseUrl}}/auth/signin
+Content-Type: {{contentType}}
+
+{
+  "emailOrUsername": "admin.user@mail.com",
+  "password": "",
+  "rememberMe": false
+}
+
+###
+
+### Test 10: Validation Error - Password Too Short
+POST {{baseUrl}}/auth/signin
+Content-Type: {{contentType}}
+
+{
+  "emailOrUsername": "admin.user@mail.com",
+  "password": "short",
+  "rememberMe": false
+}
+
+###
+
+### Test 11: Validation Error - Email/Username Too Long (>320 characters)
+POST {{baseUrl}}/auth/signin
+Content-Type: {{contentType}}
+
+{
+  "emailOrUsername": "verylongusernamethatexceedsthemaximumlengthof320charactersverylongusernamethatexceedsthemaximumlengthof320charactersverylongusernamethatexceedsthemaximumlengthof320charactersverylongusernamethatexceedsthemaximumlengthof320charactersverylongusernamethatexceedsthemaximumlengthof320characters@example.com",
+  "password": "ValidPass123!",
+  "rememberMe": false
+}
+
+###
+
+### Test 12: Validation Error - Password Too Long (>100 characters)
+POST {{baseUrl}}/auth/signin
+Content-Type: {{contentType}}
+
+{
+  "emailOrUsername": "admin.user@mail.com",
+  "password": "ThisPasswordIsWayTooLongAndExceedsTheMaximumLengthOf100CharactersThisPasswordIsWayTooLongAndExceedsTheMaximumLengthOf100Characters123!",
+  "rememberMe": false
+}
+
+###
+
+### Test 13: Special Characters in Email/Username
+POST {{baseUrl}}/auth/signin
+Content-Type: {{contentType}}
+
+{
+  "emailOrUsername": "user+test@example.com",
+  "password": "ValidPass123!",
+  "rememberMe": false
+}
+
+###
+
+### Test 14: Case Sensitivity Test - Email
+POST {{baseUrl}}/auth/signin
+Content-Type: {{contentType}}
+
+{
+  "emailOrUsername": "ADMIN.USER@MAIL.COM",
+  "password": "Onejuly1!",
+  "rememberMe": false
+}
+
+###
+
+### Test 15: Case Sensitivity Test - Username
+POST {{baseUrl}}/auth/signin
+Content-Type: {{contentType}}
+
+{
+  "emailOrUsername": "ADMINUSER",
+  "password": "Onejuly1!",
+  "rememberMe": false
+}
+
+###
+
+### Test 16: SQL Injection Attempt - Email Field
+POST {{baseUrl}}/auth/signin
+Content-Type: {{contentType}}
+
+{
+  "emailOrUsername": "admin.user@mail.com'; DROP TABLE Users; --",
+  "password": "Onejuly1!",
+  "rememberMe": false
+}
+
+###
+
+### Test 17: SQL Injection Attempt - Password Field
+POST {{baseUrl}}/auth/signin
+Content-Type: {{contentType}}
+
+{
+  "emailOrUsername": "admin.user@mail.com",
+  "password": "'; DROP TABLE Users; --",
+  "rememberMe": false
+}
+
+###
+
+### Test 18: Multiple Failed Attempts - First Attempt
+POST {{baseUrl}}/auth/signin
+Content-Type: {{contentType}}
+
+{
+  "emailOrUsername": "user001",
+  "password": "WrongPassword1!",
+  "rememberMe": false
+}
+
+###
+
+### Test 19: Multiple Failed Attempts - Second Attempt
+POST {{baseUrl}}/auth/signin
+Content-Type: {{contentType}}
+
+{
+  "emailOrUsername": "user001",
+  "password": "WrongPassword2!",
+  "rememberMe": false
+}
+
+###
+
+### Test 20: Multiple Failed Attempts - Third Attempt
+POST {{baseUrl}}/auth/signin
+Content-Type: {{contentType}}
+
+{
+  "emailOrUsername": "user001",
+  "password": "WrongPassword3!",
+  "rememberMe": false
+}
+
+###
+
+### Test 21: Multiple Failed Attempts - Fourth Attempt
+POST {{baseUrl}}/auth/signin
+Content-Type: {{contentType}}
+
+{
+  "emailOrUsername": "user001",
+  "password": "WrongPassword4!",
+  "rememberMe": false
+}
+
+###
+
+### Test 22: Multiple Failed Attempts - Fifth Attempt (Should Lock Account)
+POST {{baseUrl}}/auth/signin
+Content-Type: {{contentType}}
+
+{
+  "emailOrUsername": "user001",
+  "password": "WrongPassword5!",
+  "rememberMe": false
+}
+
+###
+
+### Test 23: Account Locked Out - After Multiple Failed Attempts
+POST {{baseUrl}}/auth/signin
+Content-Type: {{contentType}}
+
+{
+  "emailOrUsername": "user001",
+  "password": "UserPass123!",
+  "rememberMe": false
+}
+
+###
+
+### Test 24: Whitespace Test - Leading/Trailing Spaces in Email
+POST {{baseUrl}}/auth/signin
+Content-Type: {{contentType}}
+
+{
+  "emailOrUsername": "  admin.user@mail.com  ",
+  "password": "Onejuly1!",
+  "rememberMe": false
+}
+
+###
+
+### Test 25: Whitespace Test - Leading/Trailing Spaces in Password
+POST {{baseUrl}}/auth/signin
+Content-Type: {{contentType}}
+
+{
+  "emailOrUsername": "admin.user@mail.com",
+  "password": "  Onejuly1!  ",
+  "rememberMe": false
+}
+
+###
+
+### Test 26: Unicode Characters Test
+POST {{baseUrl}}/auth/signin
+Content-Type: {{contentType}}
+
+{
+  "emailOrUsername": "tëst@example.com",
+  "password": "Tëst123!",
+  "rememberMe": false
+}
+
+###
+
+### Test 27: Malformed JSON - Invalid Request Body
+POST {{baseUrl}}/auth/signin
+Content-Type: {{contentType}}
+
+{
+  "emailOrUsername": "admin.user@mail.com",
+  "password": "Onejuly1!",
+  "rememberMe": false,
+}
+
+###
+
+### Test 28: Missing Content-Type Header
+POST {{baseUrl}}/auth/signin
+
+{
+  "emailOrUsername": "admin.user@mail.com",
+  "password": "Onejuly1!",
+  "rememberMe": false
+}
+
+###
+
+### Test 29: Empty Request Body
+POST {{baseUrl}}/auth/signin
+Content-Type: {{contentType}}
+
+{}
+
+###
+
+### Test 30: Null Values
+POST {{baseUrl}}/auth/signin
+Content-Type: {{contentType}}
+
+{
+  "emailOrUsername": null,
+  "password": null,
+  "rememberMe": false
+}
+
+###
+
+### Test 31: Boolean Value Test - RememberMe True
+POST {{baseUrl}}/auth/signin
+Content-Type: {{contentType}}
+
+{
+  "emailOrUsername": "admin.user@mail.com",
+  "password": "Onejuly1!",
+  "rememberMe": true
+}
+
+###
+
+### Test 32: Boolean Value Test - RememberMe False
+POST {{baseUrl}}/auth/signin
+Content-Type: {{contentType}}
+
+{
+  "emailOrUsername": "admin.user@mail.com",
+  "password": "Onejuly1!",
+  "rememberMe": false
+}
+
+###
+
+### Test 33: Extra Fields in Request (Should be ignored)
+POST {{baseUrl}}/auth/signin
+Content-Type: {{contentType}}
+
+{
+  "emailOrUsername": "admin.user@mail.com",
+  "password": "Onejuly1!",
+  "rememberMe": false,
+  "extraField": "This should be ignored",
+  "anotherField": 12345
+}
+
+###
