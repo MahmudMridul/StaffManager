@@ -72,7 +72,7 @@ namespace RBAC_API.Controllers
                 return BadRequest(RbacResponse.BadRequest(sb.ToString(), errorMsg));
             }
 
-            IList<User> adminExists = await _userManager.GetUsersInRoleAsync("Super Admin");
+            IList<User> adminExists = await _userManager.GetUsersInRoleAsync("SUPER_ADMIN");
 
             if (adminExists.Count > 0)
             {
@@ -80,7 +80,7 @@ namespace RBAC_API.Controllers
             }
             else
             {
-                await _userManager.AddToRoleAsync(user, "Super Admin");
+                await _userManager.AddToRoleAsync(user, "SUPER_ADMIN");
             }   
             return Ok(RbacResponse.Created(signupRequest, "Signup successfull"));
         }
