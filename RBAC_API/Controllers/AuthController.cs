@@ -8,6 +8,7 @@ using RBAC_API.Models;
 using RBAC_API.Models.DTOs;
 using RBAC_API.Services;
 using RBAC_API.Servies;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
 
@@ -96,13 +97,14 @@ namespace RBAC_API.Controllers
                 List<string> errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
                 return BadRequest(RbacResponse.BadRequest("Validation failed", errors));
             }
+            string? clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
 
             User? user = await _userManager.FindByEmailAsync(signinRequest.EmailOrUsername) ??
                         await _userManager.FindByNameAsync(signinRequest.EmailOrUsername);
 
             if (user == null)
             {
-                return BadRequest(RbacResponse.BadRequest("Invalid credentials"));
+                return BadRequest(RbacResponse.BadRequest($"Invalid credentials. Signin attempt with non-existent user: {signinRequest.EmailOrUsername} from IP: {clientIp}"));
             }
 
             if (await _userManager.IsLockedOutAsync(user))
@@ -123,10 +125,22 @@ namespace RBAC_API.Controllers
                 {
                     return BadRequest(RbacResponse.BadRequest("Account locked out due to multiple failed attempts."));
                 }
-                return BadRequest(RbacResponse.BadRequest("Invalid credentials"));
+                int failedCount = await _userManager.GetAccessFailedCountAsync(user);
+                int maxAttempts = _userManager.Options.Lockout.MaxFailedAccessAttempts;
+                int attemptsLeft = maxAttempts - failedCount;
+                return BadRequest(RbacResponse.BadRequest($"Invalid credentials. User {signinRequest.EmailOrUsername} has {attemptsLeft} attempts remaining before lockout"));
+            }
+
+            if (_userManager.Options.SignIn.RequireConfirmedEmail && !user.EmailConfirmed)
+            {
+                return BadRequest(RbacResponse.BadRequest("Please confirm your email address before signing in."));
             }
 
             var authResponse = await GenerateAuthResponseAsync(user);
+
+            user.LastLoginAt = DateTime.UtcNow;
+            user.LastLoginIp = clientIp;
+            await _userManager.UpdateAsync(user);
 
             return Ok(RbacResponse.Ok(authResponse, "Sign in successful"));
         }
@@ -142,7 +156,6 @@ namespace RBAC_API.Controllers
                 return BadRequest(RbacResponse.BadRequest("User not found"));
             }
 
-            // Revoke all refresh tokens for this user
             var refreshTokens = await _context.RefreshTokens
                 .Where(rt => rt.UserId == userId && rt.RevokedAt == null)
                 .ToListAsync();
@@ -168,7 +181,6 @@ namespace RBAC_API.Controllers
                 return BadRequest(RbacResponse.BadRequest("User not found"));
             }
 
-            // Revoke all refresh tokens for this user across all devices
             var refreshTokens = await _context.RefreshTokens
                 .Where(rt => rt.UserId == userId && rt.RevokedAt == null)
                 .ToListAsync();
@@ -204,7 +216,6 @@ namespace RBAC_API.Controllers
             var refreshToken = _jwtService.GenerateRefreshToken();
             var refreshTokenExpiration = _jwtService.GetRefreshTokenExpiration();
 
-            // Store refresh token in database
             var refreshTokenEntity = new RefreshToken
             {
                 Token = refreshToken,
@@ -216,12 +227,19 @@ namespace RBAC_API.Controllers
             _context.RefreshTokens.Add(refreshTokenEntity);
             await _context.SaveChangesAsync();
 
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true, // Ensure HTTPS
+                SameSite = SameSiteMode.Strict,
+                Expires = refreshTokenExpiration
+            };
+
+            Response.Cookies.Append("RefreshToken", refreshToken, cookieOptions);
+
             return new AuthResponse
             {
                 AccessToken = accessToken,
-                RefreshToken = refreshToken,
-                AccessTokenExpiration = DateTime.UtcNow.AddMinutes(int.Parse(_config["Jwt:AccessTokenExpirationMinutes"] ?? "15")),
-                RefreshTokenExpiration = refreshTokenExpiration,
                 User = new UserInfo
                 {
                     Id = user.Id,
@@ -232,38 +250,6 @@ namespace RBAC_API.Controllers
                     Roles = roles.ToList()
                 }
             };
-        }
-
-        // GET: api/<AuthController>
-        [HttpGet]
-        public IEnumerable<string> Get()
-        {
-            return new string[] { "value1", "value2" };
-        }
-
-        // GET api/<AuthController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
-        {
-            return "value";
-        }
-
-        // POST api/<AuthController>
-        [HttpPost]
-        public void Post([FromBody] string value)
-        {
-        }
-
-        // PUT api/<AuthController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE api/<AuthController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
         }
     }
 }
