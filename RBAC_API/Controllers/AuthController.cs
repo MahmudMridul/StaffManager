@@ -8,7 +8,6 @@ using RBAC_API.Models;
 using RBAC_API.Models.DTOs;
 using RBAC_API.Services;
 using RBAC_API.Servies;
-using System.Linq;
 using System.Security.Claims;
 using System.Text;
 
@@ -80,7 +79,7 @@ namespace RBAC_API.Controllers
 
             if (adminExists.Count > 0)
             {
-                await _userManager.AddToRoleAsync(user, "Junior Staff");
+                await _userManager.AddToRoleAsync(user, "JUNIOR_STAFF");
             }
             else
             {

@@ -1,8 +1,36 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { urls } from "./apiConfig";
 
 const initialState = {
 	value: 0,
 };
+
+export const signUp = createAsyncThunk(
+	"auth/signUp",
+	async (payload, { rejectWithValue }) => {
+		try {
+			const url = urls.signUp;
+			const response = await fetch(url, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Accept: "application/json",
+				},
+				body: JSON.stringify(payload),
+			});
+
+			if (!response.ok) {
+				const errorData = await response.json();
+				return rejectWithValue(errorData.message || "Signup failed");
+			}
+
+			const data = await response.json();
+			return data;
+		} catch (error) {
+			return rejectWithValue(error.message || "Network error");
+		}
+	}
+);
 
 export const appSlice = createSlice({
 	name: "counter",

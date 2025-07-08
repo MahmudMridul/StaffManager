@@ -1,8 +1,11 @@
 import { useState } from "react";
+import { useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router";
+import { signUp } from "../appSlice";
 
 export default function SignUp() {
 	const navigate = useNavigate();
+	const dispatch = useDispatch();
 	const [formData, setFormData] = useState({
 		firstName: "",
 		lastName: "",
@@ -55,7 +58,7 @@ export default function SignUp() {
 
 		if (!formData.password) {
 			newErrors.password = "Password is required";
-		} else if (formData.password.length < 6) {
+		} else if (formData.password.length < 8) {
 			newErrors.password = "Password must be at least 6 characters";
 		}
 
@@ -77,13 +80,22 @@ export default function SignUp() {
 			return;
 		}
 
-		setIsLoading(true);
-
-		// Simulate API call
-		setTimeout(() => {
-			setIsLoading(false);
-			navigate("/dashboard");
-		}, 2000);
+		try {
+			const result = await dispatch(signUp(formData));
+			if (signUp.fulfilled.match(result)) {
+				setFormData({
+					firstName: "",
+					lastName: "",
+					username: "",
+					email: "",
+					password: "",
+					confirmPassword: "",
+				});
+				setErrors({});
+			}
+		} catch (error) {
+			console.error(error);
+		}
 	};
 
 	const isFormValid = Object.values(formData).every(

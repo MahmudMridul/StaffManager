@@ -1,0 +1,35 @@
+{
+	"password": "Staff123#",
+	"users": [
+		{
+			"firstName": "user",
+			"lastName": "super",
+			"email": "user.super@mail.com",
+			"username": "usersuper"
+		},
+		{
+			"firstName": "user",
+			"lastName": "admin",
+			"email": "user.admin@mail.com",
+			"username": "useradmin"
+		},
+		{
+			"firstName": "user",
+			"lastName": "manager",
+			"email": "user.manager@mail.com",
+			"username": "usermanager"
+		},
+		{
+			"firstName": "user",
+			"lastName": "senior",
+			"email": "user.senior@mail.com",
+			"username": "usersenior"
+		},
+		{
+			"firstName": "user",
+			"lastName": "junior",
+			"email": "user.junior@mail.com",
+			"username": "userjunior"
+		}
+	]
+}
