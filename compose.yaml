@@ -17,6 +17,23 @@ services:
     networks:
       - postgres_network
 
+  rbac_api:
+    build:
+      context: ./RBAC_API
+      dockerfile: Dockerfile
+    container_name: rbac_api
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:7225
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=staff_manager;Username=admin;Password=admin123
+    ports:
+      - "7225:7225"
+    depends_on:
+      - postgres
+    networks:
+      - postgres_network
+
   # Optional: pgAdmin for web-based database management
   pgadmin:
     image: dpage/pgadmin4:latest
